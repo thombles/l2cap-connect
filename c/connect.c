@@ -13,32 +13,32 @@ int main(int argc, char **argv)
     char dest[18] = "01:23:45:67:89:AB";
     struct bt_security bt_sec;
 
-    if(argc < 2)
+    if(argc < 3)
     {
-        fprintf(stderr, "usage: %s <bt_addr>\n", argv[0]);
+        fprintf(stderr, "usage: %s <bt_addr> <psm>\n", argv[0]);
         exit(2);
     }
 
     strncpy(dest, argv[1], 18);
+    unsigned short psm;
+    sscanf(argv[2], "%hu", &psm);
 
     // allocate a socket
     s = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
 
     // set the connection parameters (who to connect to)
     addr.l2_family = AF_BLUETOOTH;
-    addr.l2_psm = htobs(192);
+    addr.l2_psm = htobs(psm);
     str2ba( dest, &addr.l2_bdaddr );
     addr.l2_bdaddr_type = BDADDR_LE_RANDOM;
-    
-    printf("About to connect\n");
-    sleep(2);
 
     // connect to server
+    printf("Connecting...\n");
     status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
 
     // send a message
     if( status == 0 ) {
-        printf("Connected\n");
+        printf("Connected ok, delaying 1 second before write\n");
         sleep(1);
         printf("Writing message\n");
         status = write(s, "hello!\n", 7);
@@ -47,8 +47,5 @@ int main(int argc, char **argv)
     if( status < 0 ) perror("uh oh");
 
     printf("Wrote the message\n");
-    sleep(5);
-    printf("Closing\n");
-
     close(s);
 }

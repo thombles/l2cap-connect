@@ -68,6 +68,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     println!("Connected");
 
+    // TODO write message too
 
     Ok(())
 }
