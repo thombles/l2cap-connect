@@ -9,13 +9,13 @@ const BDADDR_LE_PUBLIC: u8 = 0x01;
 const BDADDR_LE_RANDOM: u8 = 0x02;
 
 #[repr(packed)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct bdaddr_t {
     b: [u8; 6],
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct sockaddr_l2 {
 	l2_family: sa_family_t,
 	l2_psm: c_ushort,
@@ -25,6 +25,7 @@ struct sockaddr_l2 {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    println!("socket({}, {}, {})", AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
     let s = match unsafe {
         libc::socket(
             AF_BLUETOOTH,
@@ -40,7 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let addr_str = env::args().skip(1).next().expect("Must provide a connect address parameter");
     let addr: Vec<u8> = addr_str.split(":").map(|hex| u8::from_str_radix(hex, 16).unwrap()).collect();
     let bdaddr = bdaddr_t {
-        b: [addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]],
+        b: [addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]],
     };
 
     let psm: u16 = env::args().skip(2).next().unwrap().parse().unwrap();
@@ -56,6 +57,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Connecting to sockaddr_l2 {:?} (sz {}) on PSM {}", sockaddr, sockaddr_sz, psm);
     
+    println!("connect({}, ... {})", s, sockaddr_sz);
+    unsafe {
+        println!("sockaddr: {:?}", std::mem::transmute::<sockaddr_l2, [u8; 14]>(sockaddr.clone()));
+    }
     match unsafe {
         libc::connect(
             s,

@@ -24,6 +24,7 @@ int main(int argc, char **argv)
     sscanf(argv[2], "%hu", &psm);
 
     // allocate a socket
+    printf("socket(%d, %d, %d)\n", AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
     s = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
 
     // set the connection parameters (who to connect to)
@@ -33,7 +34,14 @@ int main(int argc, char **argv)
     addr.l2_bdaddr_type = BDADDR_LE_RANDOM;
 
     // connect to server
-    printf("Connecting...\n");
+    printf("connect(%d, ..., %d)\n", s, sizeof(addr));
+    printf("addr: ");
+    unsigned char *raw = &addr;
+    for (int i = 0; i < sizeof(addr); i++) {
+        printf("%d ", raw[i]);
+    }
+    printf("\n");
+
     status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
 
     // send a message
